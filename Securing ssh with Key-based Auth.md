@@ -70,3 +70,38 @@ ssh username@remote_server_ip
 **Pro Tip: Disabling Password Authentication**
 
 Once you've confirmed your SSH key works, it is common practice to disable password logins entirely on the remote server's /etc/ssh/sshd_config file. This ensures that only people with authorized keys can get in, making your server significantly more secure against hackers.
+
+**Emergency Recovery and Lockout Prevention**
+
+When you disable password authentication, you are essentially telling the server: "If a visitor doesn't have my specific physical key, do not even talk to them." If you lose that key, you need a "backdoor" or a spare.
+
+### Part 1: How to Get Back In (The Recovery Phase)
+
+If you have already lost your device and find yourself locked out, try these three methods in order:
+
+   1. The Cloud Console (VPS Users): If you use AWS, DigitalOcean, or Linode, log into their website. Every provider has a "Serial Console" or "Web Terminal." This acts as if you are standing in front of the physical server with a keyboard. It bypasses SSH rules, allowing you to log in with your username and password to fix the configuration.
+
+   2. Physical Access (Home/Office Servers): If the server is a physical computer near you, simply plug in a monitor and keyboard. The sshd_config file only restricts remote access; it does not block someone sitting at the actual machine.
+
+   3. Rescue/Recovery Mode: If the console fails, most hosts offer a "Rescue Boot." This boots your server into a tiny, temporary OS. You can then "mount" your real hard drive as a folder, navigate to /etc/ssh/sshd_config, and change PasswordAuthentication back to yes.
+
+### Part 2: The "Rule of Two" (The Prevention Phase)
+
+To ensure you never have to use the recovery steps above, follow these industry best practices:
+
+1. The Backup Key	Copy your id_rsa (private key) to a secure, encrypted USB drive and keep it in a physical safe.
+2. Secondary Device	Generate a second key on another device (like a home laptop or a tablet) and add it to the server immediately.
+3. The "Break Glass" User	Create a second user account (e.g., admin_backup) that still allows passwords, but give it a massive 30+ character password.
+4. Cloud Snapshots	Take a "Snapshot" of your server before making major security changes so you can "Rewind" if things break.
+
+### Part 3: Adding a Second Authorized Device
+
+The best thing you can do right now is authorize a second device. The server's authorized_keys file is just a list—it can hold as many keys as you want.
+
+To add a new device:
+
+    1. Generate a key on the new device: ssh-keygen -t rsa -b 2048.
+
+    2. Copy that new key to the server: ssh-copy-id username@ip.
+
+    3. The server will now recognize both your original device and the new one.
